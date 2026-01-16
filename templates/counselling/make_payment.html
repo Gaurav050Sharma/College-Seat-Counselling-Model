@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Make Payment - Counselling System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .payment-method {
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .payment-method:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+    .payment-method.selected {
+        border-color: #007bff;
+        background-color: #e3f2fd;
+    }
+    .payment-method input[type="radio"] {
+        display: none;
+    }
+    .payment-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    .security-note {
+        background-color: #e8f5e8;
+        border-left: 4px solid #28a745;
+        padding: 15px;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-4">
+                <h1><i class="fas fa-credit-card"></i> Make Payment</h1>
+                <p class="text-muted">Complete your counselling fee payment to proceed</p>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="payment-card text-center">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3>Counselling Fee</h3>
+                        <h1>₹{{ settings.counselling_fee }}</h1>
+                        <p class="mb-0">One-time registration fee for counselling process</p>
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fas fa-university fa-4x"></i>
+                    </div>
+                </div>
+            </div>
+
+            {% if payment and payment.status == 'failed' %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Previous Payment Failed:</strong> {{ payment.failure_reason }}
+                    <br>Please try again with a different payment method.
+                </div>
+            {% endif %}
+
+            <!-- Payment Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-lock"></i> Secure Payment</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="payment-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Select Payment Method:</strong></label>
+                            
+                            <div class="payment-method" data-method="credit_card">
+                                <input type="radio" name="payment_method" value="credit_card" id="credit_card">
+                                <label for="credit_card" class="w-100">
+                                    <div class="row align-items-center">
+                                        <div class="col-2 text-center">
+                                            <i class="fas fa-credit-card payment-icon text-primary"></i>
+                                        </div>
+                                        <div class="col-10">
+                                            <h6 class="mb-1">Credit Card</h6>
+                                            <small class="text-muted">Visa, MasterCard, American Express</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" data-method="debit_card">
+                                <input type="radio" name="payment_method" value="debit_card" id="debit_card">
+                                <label for="debit_card" class="w-100">
+                                    <div class="row align-items-center">
+                                        <div class="col-2 text-center">
+                                            <i class="fas fa-credit-card payment-icon text-success"></i>
+                                        </div>
+                                        <div class="col-10">
+                                            <h6 class="mb-1">Debit Card</h6>
+                                            <small class="text-muted">All major bank debit cards</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" data-method="net_banking">
+                                <input type="radio" name="payment_method" value="net_banking" id="net_banking">
+                                <label for="net_banking" class="w-100">
+                                    <div class="row align-items-center">
+                                        <div class="col-2 text-center">
+                                            <i class="fas fa-university payment-icon text-info"></i>
+                                        </div>
+                                        <div class="col-10">
+                                            <h6 class="mb-1">Net Banking</h6>
+                                            <small class="text-muted">All major banks supported</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" data-method="upi">
+                                <input type="radio" name="payment_method" value="upi" id="upi">
+                                <label for="upi" class="w-100">
+                                    <div class="row align-items-center">
+                                        <div class="col-2 text-center">
+                                            <i class="fas fa-mobile-alt payment-icon text-warning"></i>
+                                        </div>
+                                        <div class="col-10">
+                                            <h6 class="mb-1">UPI</h6>
+                                            <small class="text-muted">Google Pay, PhonePe, Paytm, BHIM</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" data-method="wallet">
+                                <input type="radio" name="payment_method" value="wallet" id="wallet">
+                                <label for="wallet" class="w-100">
+                                    <div class="row align-items-center">
+                                        <div class="col-2 text-center">
+                                            <i class="fas fa-wallet payment-icon text-danger"></i>
+                                        </div>
+                                        <div class="col-10">
+                                            <h6 class="mb-1">Digital Wallet</h6>
+                                            <small class="text-muted">Paytm, Amazon Pay, Mobikwik</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="security-note">
+                            <div class="row align-items-center">
+                                <div class="col-1">
+                                    <i class="fas fa-shield-alt fa-2x text-success"></i>
+                                </div>
+                                <div class="col-11">
+                                    <h6 class="mb-1">Secure Payment</h6>
+                                    <small>
+                                        <i class="fas fa-check text-success"></i> 256-bit SSL encryption<br>
+                                        <i class="fas fa-check text-success"></i> PCI DSS compliant<br>
+                                        <i class="fas fa-check text-success"></i> No card details stored
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="pay-button" disabled>
+                                <i class="fas fa-lock"></i> Pay ₹{{ settings.counselling_fee }} Securely
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            This is a demo payment system. No actual money will be charged.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-file-contract"></i> Terms and Conditions</h6>
+                    <ul class="small text-muted">
+                        <li>Payment once made is non-refundable</li>
+                        <li>Payment is required to participate in counselling</li>
+                        <li>Technical issues should be reported immediately</li>
+                        <li>Keep transaction ID for future reference</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="{% url 'counselling:student_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentMethods = document.querySelectorAll('.payment-method');
+    const payButton = document.getElementById('pay-button');
+    const form = document.getElementById('payment-form');
+
+    // Handle payment method selection
+    paymentMethods.forEach(method => {
+        method.addEventListener('click', function() {
+            // Remove selected class from all methods
+            paymentMethods.forEach(m => m.classList.remove('selected'));
+            
+            // Add selected class to clicked method
+            this.classList.add('selected');
+            
+            // Check the radio button
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Enable pay button
+            payButton.disabled = false;
+        });
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+        
+        if (!selectedMethod) {
+            e.preventDefault();
+            alert('Please select a payment method');
+            return;
+        }
+
+        // Simulate payment processing
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Payment...';
+        payButton.disabled = true;
+    });
+});
+</script>
+{% endblock %}

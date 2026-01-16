@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Course{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-plus"></i> Add New Course</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="course_name" class="form-label">Course Name *</label>
+                                    <input type="text" class="form-control" id="course_name" name="course_name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="course_code" class="form-label">Course Code *</label>
+                                    <input type="text" class="form-control" id="course_code" name="course_code" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="department" class="form-label">Department *</label>
+                                    <select class="form-select" id="department" name="department" required>
+                                        <option value="">Select Department</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                        <option value="Electronics">Electronics & Communication</option>
+                                        <option value="Mechanical">Mechanical Engineering</option>
+                                        <option value="Civil">Civil Engineering</option>
+                                        <option value="Electrical">Electrical Engineering</option>
+                                        <option value="Chemical">Chemical Engineering</option>
+                                        <option value="Aerospace">Aerospace Engineering</option>
+                                        <option value="Biotechnology">Biotechnology</option>
+                                        <option value="Information Technology">Information Technology</option>
+                                        <option value="Others">Others</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="degree_type" class="form-label">Degree Type *</label>
+                                    <select class="form-select" id="degree_type" name="degree_type" required>
+                                        <option value="">Select Degree Type</option>
+                                        <option value="B.Tech">B.Tech</option>
+                                        <option value="B.E">B.E</option>
+                                        <option value="M.Tech">M.Tech</option>
+                                        <option value="M.E">M.E</option>
+                                        <option value="MBA">MBA</option>
+                                        <option value="MCA">MCA</option>
+                                        <option value="B.Sc">B.Sc</option>
+                                        <option value="M.Sc">M.Sc</option>
+                                        <option value="PhD">PhD</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="duration_years" class="form-label">Duration (Years) *</label>
+                                    <select class="form-select" id="duration_years" name="duration_years" required>
+                                        <option value="">Select Duration</option>
+                                        <option value="1">1 Year</option>
+                                        <option value="2">2 Years</option>
+                                        <option value="3">3 Years</option>
+                                        <option value="4">4 Years</option>
+                                        <option value="5">5 Years</option>
+                                        <option value="6">6 Years</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="total_seats" class="form-label">Total Seats *</label>
+                                    <input type="number" class="form-control" id="total_seats" name="total_seats" min="1" max="1000" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="fee_per_year" class="form-label">Fee Per Year (₹) *</label>
+                                    <input type="number" class="form-control" id="fee_per_year" name="fee_per_year" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">
+                                    Course is active and available for counselling
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'colleges:course_list' %}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Add Course
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

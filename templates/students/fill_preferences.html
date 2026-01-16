@@ -1,0 +1,496 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fill Preferences{% endblock %}
+
+{% block content %}
+<div class="contai                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Preferences
+                                    </button>
+                                    <a href="{% url 'students:student_dashboard' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                    </a>uid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 bg-light sidebar">
+            <div class="d-flex flex-column">
+                <h4 class="text-primary mb-4">
+                    <i class="fas fa-user-graduate"></i> Student Panel
+                </h4>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="{% url 'students:student_dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link active" href="{% url 'students:fill_preferences' %}">
+                        <i class="fas fa-list-ol"></i> Fill Preferences
+                    </a>
+                    <a class="nav-link" href="{% url 'students:make_payment' %}">
+                        <i class="fas fa-credit-card"></i> Pay Token Amount
+                    </a>
+                    <a class="nav-link" href="{% url 'profile' %}">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a class="nav-link" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <h2><i class="fas fa-list-ol"></i> Fill Course Preferences</h2>
+            <p class="text-muted">Select and order your preferred courses. Use search filters and drag to reorder your preferences.</p>
+
+            <form method="post" id="preferencesForm">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <!-- Available Courses -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-graduation-cap"></i> Available Courses</h5>
+                                
+                                <!-- Search Filters -->
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="searchCourse" class="small">Search by Course:</label>
+                                            <input type="text" id="searchCourse" class="form-control form-control-sm" placeholder="e.g., Computer Science">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="searchCollege" class="small">Search by College:</label>
+                                            <input type="text" id="searchCollege" class="form-control form-control-sm" placeholder="e.g., IIT Bombay">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" id="clearFilters" class="btn btn-sm btn-outline-secondary mb-2">
+                                    <i class="fas fa-times"></i> Clear Filters
+                                </button>
+                            </div>
+                            <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                                <div id="coursesList">
+                                    {% for course in courses %}
+                                    <div class="course-item card mb-2" data-course-id="{{ course.id }}" 
+                                         data-course-name="{{ course.course_name|lower }}" 
+                                         data-college-name="{{ course.college.college_name|lower }}">
+                                        <div class="card-body p-3">
+                                            <h6 class="card-title">{{ course.course_name }}</h6>
+                                            <p class="card-text small mb-1">
+                                                <strong>College:</strong> {{ course.college.college_name }}<br>
+                                                <strong>Department:</strong> {{ course.department }}<br>
+                                                <strong>Degree:</strong> {{ course.degree_type }} | <strong>Duration:</strong> {{ course.duration_years }} years<br>
+                                                <strong>Seats:</strong> {{ course.total_seats }} | 
+                                                <strong>Fee:</strong> ₹{{ course.fee_per_year|floatformat:0 }}/year
+                                            </p>
+                                            <button type="button" class="btn btn-sm btn-primary add-preference">
+                                                <i class="fas fa-plus"></i> Add to Preferences
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <div id="noCoursesMessage" class="alert alert-info" style="display: none;">
+                                    <i class="fas fa-info-circle"></i> No courses match your search criteria.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Preferences -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-sort"></i> Your Preferences (Drag to Reorder)</h5>
+                                <small class="text-muted">Drag the cards up or down to change priority order</small>
+                            </div>
+                            <div class="card-body">
+                                <div id="preferences-list" class="sortable-list" style="min-height: 400px;">
+                                    <!-- Existing preferences will be loaded here -->
+                                    {% for pref in existing_preferences %}
+                                    <div class="preference-item card mb-2 sortable-item" data-course-id="{{ pref.course.id }}" draggable="true">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="drag-handle me-2" style="cursor: move;">
+                                                            <i class="fas fa-grip-vertical text-muted"></i>
+                                                        </span>
+                                                        <div>
+                                                            <h6 class="card-title mb-1">
+                                                                <span class="badge badge-primary preference-number">{{ pref.preference_order }}</span>
+                                                                {{ pref.course.course_name }}
+                                                            </h6>
+                                                            <p class="card-text small mb-0">
+                                                                {{ pref.course.college.college_name }}<br>
+                                                                <span class="text-muted">₹{{ pref.course.fee_per_year|floatformat:0 }}/year</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-danger remove-preference">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> Save Preferences
+                                    </button>
+                                    <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                    </a>
+                                </div>
+                                
+                                <div class="alert alert-warning mt-3" id="emptyPreferencesAlert" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle"></i> Please add at least one course to your preferences.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const preferencesList = document.getElementById('preferences-list');
+    const coursesList = document.getElementById('coursesList');
+    const searchCourse = document.getElementById('searchCourse');
+    const searchCollege = document.getElementById('searchCollege');
+    const clearFilters = document.getElementById('clearFilters');
+    const noCoursesMessage = document.getElementById('noCoursesMessage');
+    
+    // Search functionality
+    function filterCourses() {
+        const courseFilter = searchCourse.value.toLowerCase();
+        const collegeFilter = searchCollege.value.toLowerCase();
+        const courseItems = document.querySelectorAll('.course-item');
+        let visibleCount = 0;
+        
+        courseItems.forEach(item => {
+            const courseName = item.getAttribute('data-course-name');
+            const collegeName = item.getAttribute('data-college-name');
+            
+            const courseMatch = courseName.includes(courseFilter);
+            const collegeMatch = collegeName.includes(collegeFilter);
+            
+            if (courseMatch && collegeMatch) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Show/hide no courses message
+        if (visibleCount === 0) {
+            noCoursesMessage.style.display = 'block';
+        } else {
+            noCoursesMessage.style.display = 'none';
+        }
+    }
+    
+    // Add event listeners for search
+    searchCourse.addEventListener('input', filterCourses);
+    searchCollege.addEventListener('input', filterCourses);
+    
+    // Clear filters
+    clearFilters.addEventListener('click', function() {
+        searchCourse.value = '';
+        searchCollege.value = '';
+        filterCourses();
+    });
+    
+    // Drag and drop functionality
+    let draggedElement = null;
+    
+    function makeSortable() {
+        const sortableItems = preferencesList.querySelectorAll('.sortable-item');
+        
+        sortableItems.forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                this.style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            item.addEventListener('dragend', function() {
+                this.style.opacity = '1';
+                draggedElement = null;
+                updatePreferenceNumbers();
+            });
+            
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+            
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                if (draggedElement !== this) {
+                    const allItems = Array.from(preferencesList.querySelectorAll('.sortable-item'));
+                    const draggedIndex = allItems.indexOf(draggedElement);
+                    const targetIndex = allItems.indexOf(this);
+                    
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
+                }
+            });
+        });
+    }
+    
+    // Add course to preferences
+    document.querySelectorAll('.add-preference').forEach(button => {
+        button.addEventListener('click', function() {
+            const courseItem = this.closest('.course-item');
+            const courseId = courseItem.dataset.courseId;
+            const courseName = courseItem.querySelector('.card-title').textContent;
+            const cardText = courseItem.querySelector('.card-text');
+            
+            // Extract college name and fee
+            const collegeMatch = cardText.innerHTML.match(/<strong>College:<\/strong>\s*([^<]+)/);
+            const feeMatch = cardText.innerHTML.match(/₹([0-9,]+)/);
+            const collegeName = collegeMatch ? collegeMatch[1].trim() : '';
+            const fee = feeMatch ? feeMatch[0] : '';
+            
+            // Check if already added
+            if (preferencesList.querySelector(`[data-course-id="${courseId}"]`)) {
+                alert('Course already added to preferences!');
+                return;
+            }
+            
+            // Create preference item
+            const preferenceItem = document.createElement('div');
+            preferenceItem.className = 'preference-item card mb-2 sortable-item';
+            preferenceItem.dataset.courseId = courseId;
+            preferenceItem.draggable = true;
+            preferenceItem.innerHTML = `
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center">
+                                <span class="drag-handle me-2" style="cursor: move;">
+                                    <i class="fas fa-grip-vertical text-muted"></i>
+                                </span>
+                                <div>
+                                    <h6 class="card-title mb-1">
+                                        <span class="badge badge-primary preference-number"></span>
+                                        ${courseName}
+                                    </h6>
+                                    <p class="card-text small mb-0">
+                                        ${collegeName}<br>
+                                        <span class="text-muted">${fee}/year</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger remove-preference">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            preferencesList.appendChild(preferenceItem);
+            updatePreferenceNumbers();
+            makeSortable();
+            
+            // Add remove functionality
+            preferenceItem.querySelector('.remove-preference').addEventListener('click', function() {
+                preferenceItem.remove();
+                updatePreferenceNumbers();
+                toggleEmptyAlert();
+            });
+            
+            toggleEmptyAlert();
+        });
+    });
+    
+    // Remove preference functionality for existing items
+    document.querySelectorAll('.remove-preference').forEach(button => {
+        button.addEventListener('click', function() {
+            this.closest('.preference-item').remove();
+            updatePreferenceNumbers();
+            toggleEmptyAlert();
+        });
+    });
+    
+    // Update preference numbers
+    function updatePreferenceNumbers() {
+        document.querySelectorAll('.preference-number').forEach((badge, index) => {
+            badge.textContent = index + 1;
+        });
+    }
+    
+    // Toggle empty preferences alert
+    function toggleEmptyAlert() {
+        const preferences = document.querySelectorAll('.preference-item');
+        const alert = document.getElementById('emptyPreferencesAlert');
+        
+        if (preferences.length === 0) {
+            alert.style.display = 'block';
+        } else {
+            alert.style.display = 'none';
+        }
+    }
+    
+    // Form submission
+    document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+        const preferences = document.querySelectorAll('.preference-item');
+        
+        if (preferences.length === 0) {
+            alert('Please select at least one course preference!');
+            e.preventDefault();
+            return;
+        }
+        
+        // Add hidden inputs for course order
+        preferences.forEach((item, index) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'courses';
+            input.value = item.dataset.courseId;
+            this.appendChild(input);
+        });
+    });
+    
+    // Initialize
+    makeSortable();
+    updatePreferenceNumbers();
+    toggleEmptyAlert();
+});
+</script>
+
+<style>
+.course-item:hover {
+    border-color: #007bff;
+    cursor: pointer;
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+}
+
+.preference-item {
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.preference-item:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+}
+
+.sortable-item {
+    cursor: move;
+}
+
+.sortable-item:hover {
+    background-color: #f8f9fa;
+}
+
+.sortable-item.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.drag-handle {
+    cursor: move !important;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.drag-handle:hover {
+    opacity: 1;
+}
+
+.sidebar {
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+.sortable-list {
+    position: relative;
+}
+
+.preference-item.drag-over {
+    border-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.badge-primary {
+    background-color: #007bff;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.form-control-sm {
+    height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Search highlight */
+.course-item.highlighted {
+    border-color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .col-md-6 {
+        margin-bottom: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Animation for adding new preferences */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.preference-item.new-item {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Drag indicators */
+.drag-placeholder {
+    border: 2px dashed #007bff;
+    background-color: rgba(0, 123, 255, 0.05);
+    margin: 0.5rem 0;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #007bff;
+    font-style: italic;
+}
+</style>
+{% endblock %}

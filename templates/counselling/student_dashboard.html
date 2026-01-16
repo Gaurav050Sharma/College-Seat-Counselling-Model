@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard - Counselling System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .status-pending { background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); }
+    .status-completed { background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); color: white; }
+    .status-failed { background: linear-gradient(135deg, #e17055 0%, #d63031 100%); color: white; }
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+    }
+    .step {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 0 5px;
+        position: relative;
+    }
+    .step.completed { background-color: #28a745; color: white; }
+    .step.current { background-color: #007bff; color: white; }
+    .step.pending { background-color: #6c757d; color: white; }
+    .step::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 10px solid;
+        border-top: 15px solid transparent;
+        border-bottom: 15px solid transparent;
+    }
+    .step.completed::after { border-left-color: #28a745; }
+    .step.current::after { border-left-color: #007bff; }
+    .step.pending::after { border-left-color: #6c757d; }
+    .step:last-child::after { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1><i class="fas fa-user-graduate"></i> Student Dashboard</h1>
+            <p class="text-muted">Welcome, {{ student.user.get_full_name }}! Track your counselling progress below.</p>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list-check"></i> Counselling Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="step-indicator">
+                        <div class="step completed">
+                            <i class="fas fa-user-check"></i><br>
+                            <small>Registration</small>
+                        </div>
+                        <div class="step {% if payment and payment.status == 'completed' %}completed{% elif can_make_payment %}current{% else %}pending{% endif %}">
+                            <i class="fas fa-credit-card"></i><br>
+                            <small>Payment</small>
+                        </div>
+                        <div class="step {% if preferences %}completed{% elif can_submit_preferences %}current{% else %}pending{% endif %}">
+                            <i class="fas fa-list-ol"></i><br>
+                            <small>Preferences</small>
+                        </div>
+                        <div class="step {% if allocation %}completed{% elif settings.allocation_completed %}current{% else %}pending{% endif %}">
+                            <i class="fas fa-graduation-cap"></i><br>
+                            <small>Allocation</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-money-bill-wave"></i> Payment Status</h5>
+                </div>
+                <div class="card-body">
+                    {% if payment %}
+                        <div class="status-card status-{{ payment.status }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6>Status: {{ payment.get_status_display }}</h6>
+                                    <p class="mb-1">Amount: ₹{{ payment.amount }}</p>
+                                    <p class="mb-1">Method: {{ payment.get_payment_method_display }}</p>
+                                    {% if payment.transaction_id %}
+                                        <small>Transaction ID: {{ payment.transaction_id }}</small>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    {% if payment.status == 'completed' %}
+                                        <i class="fas fa-check-circle fa-3x"></i>
+                                    {% elif payment.status == 'failed' %}
+                                        <i class="fas fa-times-circle fa-3x"></i>
+                                    {% else %}
+                                        <i class="fas fa-clock fa-3x"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if payment.status == 'failed' %}
+                                <div class="mt-2">
+                                    <small>Reason: {{ payment.failure_reason }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if payment.status != 'completed' and can_make_payment %}
+                            <a href="{% url 'counselling:make_payment' %}" class="btn btn-primary">
+                                <i class="fas fa-redo"></i> Retry Payment
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        {% if settings.payment_required %}
+                            <div class="status-card status-pending">
+                                <div class="text-center">
+                                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                                    <h6>Payment Required</h6>
+                                    <p>You need to complete payment to proceed with counselling.</p>
+                                    <p><strong>Fee: ₹{{ settings.counselling_fee }}</strong></p>
+                                </div>
+                            </div>
+                            <a href="{% url 'counselling:make_payment' %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card"></i> Make Payment
+                            </a>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No payment required for counselling.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferences Status -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-list-ol"></i> College Preferences</h5>
+                </div>
+                <div class="card-body">
+                    {% if preferences %}
+                        <div class="status-card status-completed">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <h6>Preferences Submitted</h6>
+                                <p>You have submitted {{ preferences.count }} preferences.</p>
+                            </div>
+                        </div>
+                        
+                        <h6>Your Preferences:</h6>
+                        <ol class="list-group list-group-numbered">
+                            {% for pref in preferences %}
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div class="ms-2 me-auto">
+                                        <div class="fw-bold">{{ pref.course.name }}</div>
+                                        <small>{{ pref.course.college.name }}</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ pref.preference_order }}</span>
+                                </li>
+                            {% endfor %}
+                        </ol>
+                        
+                        {% if can_submit_preferences %}
+                            <a href="{% url 'students:submit_preferences' %}" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-edit"></i> Edit Preferences
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        {% if can_submit_preferences %}
+                            <div class="status-card status-pending">
+                                <div class="text-center">
+                                    <i class="fas fa-exclamation-circle fa-3x mb-3"></i>
+                                    <h6>Preferences Required</h6>
+                                    <p>Submit your college preferences to participate in counselling.</p>
+                                </div>
+                            </div>
+                            <a href="{% url 'students:submit_preferences' %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-plus"></i> Submit Preferences
+                            </a>
+                        {% elif not payment or payment.status != 'completed' %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-lock"></i> Complete payment first to submit preferences.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-clock"></i> Preference submission is currently closed.
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Allocation Result -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-graduation-cap"></i> Allocation Result</h5>
+                </div>
+                <div class="card-body">
+                    {% if allocation %}
+                        <div class="status-card status-completed">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h4><i class="fas fa-trophy"></i> Congratulations!</h4>
+                                    <p class="mb-2"><strong>Allocated Course:</strong> {{ allocation.course.name }}</p>
+                                    <p class="mb-2"><strong>College:</strong> {{ allocation.course.college.name }}</p>
+                                    <p class="mb-2"><strong>Preference Number:</strong> {{ allocation.preference_number }}</p>
+                                    <small class="text-muted">Allocated on: {{ allocation.allocated_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <i class="fas fa-university fa-4x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    {% elif settings.allocation_completed %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <strong>Not Allocated</strong><br>
+                            Unfortunately, you were not allocated any seat in this round of counselling.
+                            {% if not payment or payment.status != 'completed' %}
+                                This might be because your payment was not completed.
+                            {% elif not preferences %}
+                                This might be because you didn't submit preferences.
+                            {% else %}
+                                All seats were filled by higher-ranked students.
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-clock"></i> 
+                            <strong>Allocation Pending</strong><br>
+                            The seat allocation process has not been completed yet. Please wait for the results.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-id-card"></i> Your Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ student.user.get_full_name }}</p>
+                            <p><strong>Email:</strong> {{ student.user.email }}</p>
+                            <p><strong>Phone:</strong> {{ student.phone|default:"Not provided" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Rank:</strong> {{ student.rank }}</p>
+                            <p><strong>Category:</strong> {{ student.category }}</p>
+                            <p><strong>Registration Date:</strong> {{ student.user.date_joined|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

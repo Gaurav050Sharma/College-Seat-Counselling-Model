@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - Counselling System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .progress-custom {
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 5px;
+    }
+    .progress-bar-custom {
+        background-color: #28a745;
+        border-radius: 5px;
+    }
+    .btn-custom {
+        margin: 5px;
+        min-width: 150px;
+    }
+    .realtime-indicator {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        background-color: #28a745;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h1>
+                <div class="realtime-indicator" title="Real-time updates"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row" id="stats-container">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number" id="total-students">{{ stats.total_students }}</div>
+                        <div>Total Students</div>
+                    </div>
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number" id="students-paid">{{ stats.students_paid }}</div>
+                        <div>Payments Completed</div>
+                    </div>
+                    <i class="fas fa-credit-card fa-2x"></i>
+                </div>
+                <div class="progress-custom mt-2">
+                    <div class="progress-bar-custom" style="width: {{ payment_percentage }}%" id="payment-progress"></div>
+                </div>
+                <small id="payment-percentage">{{ payment_percentage|floatformat:1 }}% paid</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number" id="students-preferences">{{ stats.students_with_preferences }}</div>
+                        <div>Preferences Submitted</div>
+                    </div>
+                    <i class="fas fa-list-ol fa-2x"></i>
+                </div>
+                <div class="progress-custom mt-2">
+                    <div class="progress-bar-custom" style="width: {{ preference_percentage }}%" id="preference-progress"></div>
+                </div>
+                <small id="preference-percentage">{{ preference_percentage|floatformat:1 }}% submitted</small>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-number" id="seats-filled">{{ stats.seats_filled }}/{{ stats.total_seats }}</div>
+                        <div>Seats Allocated</div>
+                    </div>
+                    <i class="fas fa-chair fa-2x"></i>
+                </div>
+                <div class="progress-custom mt-2">
+                    <div class="progress-bar-custom" style="width: {{ utilization_percentage }}%" id="utilization-progress"></div>
+                </div>
+                <small id="utilization-percentage">{{ utilization_percentage|floatformat:1 }}% utilized</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs"></i> System Actions</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if not settings.allocation_completed %}
+                        <form method="post" action="{% url 'counselling:run_allocation' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-lg btn-custom" 
+                                    onclick="return confirm('Are you sure you want to run the allocation? This cannot be undone.')"
+                                    {% if stats.students_paid == 0 %}disabled{% endif %}>
+                                <i class="fas fa-play"></i> Run Allocation
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> Allocation completed on {{ stats.allocation_date|date:"M d, Y H:i" }}
+                        </div>
+                        <a href="{% url 'counselling:export_results' %}" class="btn btn-primary btn-lg btn-custom">
+                            <i class="fas fa-download"></i> Export Results
+                        </a>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'counselling:reset_system' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning btn-lg btn-custom" 
+                                onclick="return confirm('Are you sure you want to reset the entire system? This will delete all allocations and payments!')">
+                            <i class="fas fa-redo"></i> Reset System
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-money-bill-wave"></i> Recent Payments</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_payments %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in recent_payments %}
+                                    <tr>
+                                        <td>{{ payment.student.user.get_full_name }}</td>
+                                        <td>₹{{ payment.amount }}</td>
+                                        <td><span class="badge badge-info">{{ payment.get_payment_method_display }}</span></td>
+                                        <td>{{ payment.payment_date|date:"M d, H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No payments yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Statistics -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar"></i> Course Allocation Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% if course_stats %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>College</th>
+                                        <th>Filled/Total</th>
+                                        <th>%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course in course_stats %}
+                                    <tr>
+                                        <td>{{ course.course_name }}</td>
+                                        <td>{{ course.college__college_name }}</td>
+                                        <td>{{ course.allocated_seats }}/{{ course.total_seats }}</td>
+                                        <td>
+                                            {% if course.total_seats > 0 %}
+                                                {% widthratio course.allocated_seats course.total_seats 100 %}%
+                                            {% else %}
+                                                0%
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No course data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Last Updated -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <p class="text-muted text-center">
+                <i class="fas fa-clock"></i> Last updated: <span id="last-updated">{{ stats.updated_at|date:"M d, Y H:i:s" }}</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Real-time dashboard updates
+function updateDashboard() {
+    fetch('{% url "counselling:dashboard_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update statistics
+            document.getElementById('total-students').textContent = data.total_students;
+            document.getElementById('students-paid').textContent = data.students_paid;
+            document.getElementById('students-preferences').textContent = data.students_with_preferences;
+            document.getElementById('seats-filled').textContent = data.seats_filled + '/' + data.total_seats;
+            
+            // Update progress bars
+            document.getElementById('payment-progress').style.width = data.payment_percentage + '%';
+            document.getElementById('preference-progress').style.width = data.preference_percentage + '%';
+            document.getElementById('utilization-progress').style.width = data.utilization_percentage + '%';
+            
+            // Update percentages
+            document.getElementById('payment-percentage').textContent = data.payment_percentage + '% paid';
+            document.getElementById('preference-percentage').textContent = data.preference_percentage + '% submitted';
+            document.getElementById('utilization-percentage').textContent = data.utilization_percentage + '% utilized';
+            
+            // Update last updated time
+            document.getElementById('last-updated').textContent = data.last_updated;
+        })
+        .catch(error => console.error('Error updating dashboard:', error));
+}
+
+// Update every 30 seconds
+setInterval(updateDashboard, 30000);
+
+// Update on page load
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(updateDashboard, 1000); // Initial update after 1 second
+});
+</script>
+{% endblock %}

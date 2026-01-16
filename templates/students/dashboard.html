@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 bg-light sidebar">
+            <div class="d-flex flex-column">
+                <h4 class="text-primary mb-4">
+                    <i class="fas fa-user-graduate"></i> Student Panel
+                </h4>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="{% url 'students:student_dashboard' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="{% url 'students:fill_preferences' %}">
+                        <i class="fas fa-list-ol"></i> Fill Preferences
+                    </a>
+                    <a class="nav-link" href="{% url 'students:make_payment' %}">
+                        <i class="fas fa-credit-card"></i> Pay Token Amount
+                    </a>
+                    <a class="nav-link" href="{% url 'profile' %}">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a class="nav-link" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Welcome, {{ student.user.get_full_name }}!</h2>
+                <div class="badge badge-info">Rank: {{ student.rank }}</div>
+            </div>
+
+            <!-- Student Info Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5><i class="fas fa-trophy"></i> JEE Rank</h5>
+                            <h3>{{ student.rank }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-secondary">
+                        <div class="card-body">
+                            <h5><i class="fas fa-tag"></i> Category</h5>
+                            <h3>{{ student.category }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white {% if student.token_paid %}bg-success{% else %}bg-warning{% endif %}">
+                        <div class="card-body">
+                            <h5><i class="fas fa-credit-card"></i> Token Status</h5>
+                            <h3>{% if student.token_paid %}Paid{% else %}Pending{% endif %}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white {% if student.token_paid %}bg-success{% else %}bg-info{% endif %}">
+                        <div class="card-body">
+                            <h5><i class="fas fa-check-circle"></i> Payment Status</h5>
+                            <h3>{% if student.token_paid %}Completed{% else %}Pending{% endif %}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-tasks"></i> Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if not student.token_paid %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Please pay the token amount to participate in counselling.
+                                </div>
+                                <a href="{% url 'students:make_payment' %}" class="btn btn-warning">
+                                    <i class="fas fa-credit-card"></i> Pay Token Amount (₹5,000)
+                                </a>
+                            {% else %}
+                                <a href="{% url 'students:fill_preferences' %}" class="btn btn-primary">
+                                    <i class="fas fa-list-ol"></i> Fill Preferences
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            {% if preferences %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-list-ol"></i> Your Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Priority</th>
+                                            <th>College</th>
+                                            <th>Course</th>
+                                            <th>Seats</th>
+                                            <th>Fee (per year)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for pref in preferences %}
+                                        <tr>
+                                            <td><span class="badge badge-primary">{{ pref.preference_order }}</span></td>
+                                            <td>{{ pref.course.college.college_name }}</td>
+                                            <td>{{ pref.course.course_name }}</td>
+                                            <td>{{ pref.course.total_seats }}</td>
+                                            <td>₹{{ pref.course.fee_per_year|floatformat:0 }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Current Allocation -->
+            {% if current_allocation %}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5><i class="fas fa-graduation-cap"></i> Current Allocation</h5>
+                        </div>
+                        <div class="card-body">
+                            <h4>{{ current_allocation.course_name }}</h4>
+                            <p><strong>College:</strong> {{ current_allocation.college.college_name }}</p>
+                            <p><strong>Fee:</strong> ₹{{ current_allocation.fee_per_year|floatformat:0 }} per year</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

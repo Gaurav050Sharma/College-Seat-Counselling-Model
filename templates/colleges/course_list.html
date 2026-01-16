@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Course List{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book"></i> My Courses</h2>
+        <a href="{% url 'colleges:add_course' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Course
+        </a>
+    </div>
+
+    {% if courses %}
+        <div class="row">
+            {% for course in courses %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">{{ course.course_name }}</h5>
+                        <small>{{ course.course_code }}</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <p><strong>Department:</strong> {{ course.department }}</p>
+                                <p><strong>Degree:</strong> {{ course.degree_type }}</p>
+                                <p><strong>Duration:</strong> {{ course.duration_years }} years</p>
+                            </div>
+                            <div class="col-sm-6">
+                                <p><strong>Total Seats:</strong> {{ course.total_seats }}</p>
+                                <p><strong>Filled:</strong> {{ course.seats_filled }}</p>
+                                <p><strong>Available:</strong> {{ course.available_seats }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <p><strong>Fee:</strong> ₹{{ course.fee_per_year|floatformat:0 }}/year</p>
+                                <p><strong>Status:</strong> 
+                                    {% if course.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'colleges:course_analytics' course.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-bar"></i> View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No courses added yet</h4>
+            <p class="text-muted">Start by adding your first course to manage enrollments</p>
+            <a href="{% url 'colleges:add_course' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Your First Course
+            </a>
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{% url 'colleges:college_dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

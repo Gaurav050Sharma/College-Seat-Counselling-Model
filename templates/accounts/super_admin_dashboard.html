@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-tachometer-alt"></i> Super Admin Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ user.username }}! Manage the entire counselling system from here.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title">Total Students</h5>
+                        <h3>{{ total_students|default:0 }}</h3>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title">Total Colleges</h5>
+                        <h3>{{ total_colleges|default:0 }}</h3>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-university fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title">Total Courses</h5>
+                        <h3>{{ total_courses|default:0 }}</h3>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <h5 class="card-title">Current Round</h5>
+                        <h3>{{ current_round|default:0 }}</h3>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-sync fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-cog"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/admin/" class="btn btn-primary">
+                        <i class="fas fa-tools"></i> Django Admin Panel
+                    </a>
+                    <a href="{% url 'counselling:admin_dashboard' %}" class="btn btn-success">
+                        <i class="fas fa-sync"></i> Manage System
+                    </a>
+                    <a href="{% url 'reports:reports_dashboard' %}" class="btn btn-info">
+                        <i class="fas fa-chart-bar"></i> View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> System Status</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Counselling Status
+                        <span class="badge bg-primary rounded-pill">{{ counselling_status|default:"Not Started" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Active Round
+                        <span class="badge bg-success rounded-pill">Round {{ current_round|default:"None" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Registered Students
+                        <span class="badge bg-info rounded-pill">{{ total_students|default:0 }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Available Courses
+                        <span class="badge bg-warning rounded-pill">{{ total_courses|default:0 }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-tasks"></i> Administrative Tasks</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>User Management</h6>
+                        <ul>
+                            <li>Create student accounts</li>
+                            <li>Create college accounts</li>
+                            <li>Manage user permissions</li>
+                            <li>Reset passwords</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Counselling Management</h6>
+                        <ul>
+                            <li>Setup counselling rounds</li>
+                            <li>Start/stop rounds</li>
+                            <li>Monitor allocations</li>
+                            <li>Manage deadlines</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Reports & Analytics</h6>
+                        <ul>
+                            <li>Generate student reports</li>
+                            <li>View college analytics</li>
+                            <li>Export data to Excel</li>
+                            <li>Monitor system usage</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

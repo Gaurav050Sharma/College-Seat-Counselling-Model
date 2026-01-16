@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-user"></i> User Profile</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Username:</strong></td>
+                                <td>{{ user.username }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td>{{ user.email|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>User Type:</strong></td>
+                                <td><span class="badge bg-primary">{{ user.get_user_type_display }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Phone:</strong></td>
+                                <td>{{ user.phone|default:"Not provided" }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Member Since:</strong></td>
+                                <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        {% if user.user_type == 'student' and user.student_profile %}
+                            <h6>Student Details</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Roll Number:</strong></td>
+                                    <td>{{ user.student_profile.roll_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Rank:</strong></td>
+                                    <td>{{ user.student_profile.rank }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Category:</strong></td>
+                                    <td>{{ user.student_profile.category }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Token Paid:</strong></td>
+                                    <td>
+                                        {% if user.student_profile.token_paid %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Payment Status:</strong></td>
+                                    <td>
+                                        {% if user.student_profile.token_paid %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        {% elif user.user_type == 'college_admin' and user.college_profile %}
+                            <h6>College Details</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>College Name:</strong></td>
+                                    <td>{{ user.college_profile.college_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>College Code:</strong></td>
+                                    <td>{{ user.college_profile.college_code }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Established:</strong></td>
+                                    <td>{{ user.college_profile.established_year }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Website:</strong></td>
+                                    <td>
+                                        {% if user.college_profile.website %}
+                                            <a href="{{ user.college_profile.website }}" target="_blank">{{ user.college_profile.website }}</a>
+                                        {% else %}
+                                            Not provided
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-center">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                    <button type="button" class="btn btn-secondary" onclick="alert('Profile editing coming soon!')">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

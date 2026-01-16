@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Reports Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Test Reports Dashboard</h1>
+    <p>This is a minimal test page.</p>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Total Students</h5>
+                    <p>{{ total_students }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Total Allocations</h5>
+                    <p>{{ total_allocations }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Total Courses</h5>
+                    <p>{{ total_courses }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'reports:export_allocations' %}" class="btn btn-primary">Export Allocations</a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

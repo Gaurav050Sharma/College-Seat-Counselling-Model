@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - College Counselling System{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+    <div class="container">
+        <h1 class="display-4">Welcome to College Counselling System</h1>
+        <p class="lead">A streamlined platform for rank-based college admission counselling with automated seat allocation.</p>
+        {% if not user.is_authenticated %}
+            <a class="btn btn-light btn-lg" href="{% url 'login' %}" role="button">
+                <i class="fas fa-sign-in-alt"></i> Login to Continue
+            </a>
+        {% else %}
+            <a class="btn btn-light btn-lg" href="{% url 'dashboard' %}" role="button">
+                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-users"></i> For Students</h5>
+            </div>
+            <div class="card-body">
+                <p>Fill preferences, track allocations, make payments, and view results.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Rank-based seat allocation</li>
+                    <li><i class="fas fa-check text-success"></i> Preference management</li>
+                    <li><i class="fas fa-check text-success"></i> Payment processing</li>
+                    <li><i class="fas fa-check text-success"></i> Real-time results</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-university"></i> For Colleges</h5>
+            </div>
+            <div class="card-body">
+                <p>Manage courses, seat availability, view analytics, and track student admissions.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Course management</li>
+                    <li><i class="fas fa-check text-success"></i> Seat matrix control</li>
+                    <li><i class="fas fa-check text-success"></i> Student analytics</li>
+                    <li><i class="fas fa-check text-success"></i> Admission reports</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-cog"></i> Admin Control</h5>
+            </div>
+            <div class="card-body">
+                <p>Manage counselling system, user accounts, system settings, and generate reports.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> System management</li>
+                    <li><i class="fas fa-check text-success"></i> User account control</li>
+                    <li><i class="fas fa-check text-success"></i> System analytics</li>
+                    <li><i class="fas fa-check text-success"></i> Comprehensive reports</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle"></i> How It Works</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+                        <h6>1. Registration</h6>
+                        <p>Students and colleges get registered by admin with unique credentials.</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-list-ol fa-3x text-primary mb-3"></i>
+                        <h6>2. Fill Preferences</h6>
+                        <p>Students fill course preferences in priority order before counselling starts.</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-sync-alt fa-3x text-primary mb-3"></i>
+                        <h6>3. Allocation Process</h6>
+                        <p>Rank-based seat allocation based on student preferences and merit.</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fas fa-check-circle fa-3x text-primary mb-3"></i>
+                        <h6>4. Payment & Confirmation</h6>
+                        <p>Students make payment to confirm their allocated seat.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
